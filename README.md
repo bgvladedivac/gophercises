@@ -1,2 +1,2 @@
 # gophercises
-Coding exercises for budding gophers
+Coding exercises for budding gophers.
