@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"os"
 	"fmt"
-	"bufio"
 	"flag"
 )
 
@@ -37,25 +36,20 @@ func main() {
 		exit("Reader problem.")
 	}
 
-	scanner := bufio.NewScanner(os.Stdin)
 
 	counter := 0
 
 	for _, value := range records {
 		question, answer  := value[0], value[1]
 		fmt.Println("Question:", question)
+		var userAnswer string
+		fmt.Scanf("%s", &userAnswer)
 
-		for scanner.Scan() {
-			userGuess := scanner.Text()
-			if userGuess == answer {
-				counter += 1
-			}
-
-			break
+		if userAnswer == answer {
+			counter++
 		}
 
 	}
 
 	provideUserSummary(len(records), counter)
-
 }
