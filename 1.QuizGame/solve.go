@@ -5,15 +5,14 @@ import (
 	"os"
 	"fmt"
 	"bufio"
-	"time"
+	"flag"
 )
 
 func getFileContent(filename string) (records[][] string, err error) {
 	fd, err := os.Open(filename)
 
 	if err != nil {
-		fmt.Println("Problem with opening the file.")
-		os.Exit(-1)
+		exit("Problem with opening the file")
 	}
 
 	reader := csv.NewReader(fd)
@@ -25,41 +24,38 @@ func provideUserSummary(totalQuestions, correctAnswers int) {
 	fmt.Println("Number of corrected answers:", correctAnswers)
 }
 
-func isItDone(t Time)  {
-	elapsedTime := time.Since(t)
-	fmt.Println(elapsedTime)
+func exit(message string) {
+	fmt.Println(message)
+	os.Exit(3)
 }
 
 func main() {
-	start := time.Now()
-
-	records, err := getFileContent("problems.csv")
+	ptrToFileName := flag.String("name of csv file", "problems.csv", "The name of the csv file - default to 'problems.csv'")
+	records, err := getFileContent(*ptrToFileName)
 
 	if err != nil {
-		fmt.Println("Problem with the reader")
+		exit("Reader problem.")
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
 
 	counter := 0
-	totalQuestionsCounter := 0
 
 	for _, value := range records {
-		totalQuestionsCounter += 1
-		question := value[0]
-		answer := value[1]
+		question, answer  := value[0], value[1]
 		fmt.Println("Question:", question)
-		isItDone(start)
+
 		for scanner.Scan() {
 			userGuess := scanner.Text()
 			if userGuess == answer {
 				counter += 1
 			}
+
 			break
 		}
 
 	}
 
-	provideUserSummary(totalQuestionsCounter, counter)
+	provideUserSummary(len(records), counter)
 
 }
