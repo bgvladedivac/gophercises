@@ -31,51 +31,52 @@ func exit(message string) {
 	os.Exit(3)
 }
 
-func inScopeWithTime(seconds int64) {
+func inScopeWithTime(finished chan bool, seconds int64) {
 	time.Sleep(time.Duration(seconds) * time.Second)
-	fmt.Println("Your time has ended.")
-	fmt.Println("You had", seconds, "seconds.")
-	os.Exit(1)
+	finished <- true
 }
 
-func promptUser(allowedTime int64) {
+func promptUser(finished chan bool, allowedTime int64) {
 	//if ready start out the goutine to check if time has been exceeded
 	fmt.Println("Type 'yes' if you are ready to start")
 	var ready string
 	fmt.Scanf("%s", &ready)
 
 	if ready == Ready {
-		go inScopeWithTime(allowedTime)
-	} else {
-		promptUser(allowedTime)
-	}
+		go inScopeWithTime(finished, allowedTime)
+	} 
 }
 
 func main() {
 	fileName := flag.String("name of csv file", "problems.csv", "The name of the csv file - default to 'problems.csv'")
-	allowedTime := flag.Int64("allowed time", 30, "The duration in seconds for which the quizz must be finished.")
+	allowedTime := flag.Int64("allowed time", 3, "The duration in seconds for which the quizz must be finished.")
 
 	records, err := getFileContent(*fileName)
-
 	if err != nil {
 		exit("Reader problem.")
 	}
 
-
-	promptUser(*allowedTime)
+	finished := make(chan bool)
+	promptUser(finished, *allowedTime)
 
 	counter := 0
-	for _, value := range records {
-		question, answer  := value[0], value[1]
-		fmt.Println("Question:", question)
-		var userAnswer string
-		fmt.Scanf("%s", &userAnswer)
+	select {
+	case finish := <-finished:
+		fmt.Println("Finished:")
+		fmt.Println(finish)
+		provideUserSummary(len(records), counter)
+		os.Exit(0)
+	default:
+		for _, value := range records {
+			question, answer  := value[0], value[1]
+			fmt.Println("Question:", question)
+			var userAnswer string
+			fmt.Scanf("%s", &userAnswer)
 
-		if userAnswer == answer {
-			counter++
+			if userAnswer == answer {
+				counter++
+			}
 		}
-
+		provideUserSummary(len(records), counter)
 	}
-
-	provideUserSummary(len(records), counter)
 }
