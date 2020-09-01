@@ -31,52 +31,43 @@ func exit(message string) {
 	os.Exit(3)
 }
 
-func inScopeWithTime(finished chan bool, seconds int64) {
-	time.Sleep(time.Duration(seconds) * time.Second)
-	finished <- true
+func provideQuestions(questions[][] string, done chan bool) {
+	for index, value := range questions {
+		question, _:= value[0], value[1]
+		fmt.Println("Question N:=", index+1, "=>", question)
+
+		var userAnswer string
+		fmt.Scanf("%s", &userAnswer)
+	}
+
+	done <- true
 }
 
-func promptUser(finished chan bool, allowedTime int64) {
-	//if ready start out the goutine to check if time has been exceeded
-	fmt.Println("Type 'yes' if you are ready to start")
-	var ready string
-	fmt.Scanf("%s", &ready)
-
-	if ready == Ready {
-		go inScopeWithTime(finished, allowedTime)
-	} 
+func watchOutForTimeExpiration() {
+	timer := time.NewTimer(2 * time.Second)
+	<-timer.C
 }
 
 func main() {
 	fileName := flag.String("name of csv file", "problems.csv", "The name of the csv file - default to 'problems.csv'")
-	allowedTime := flag.Int64("allowed time", 3, "The duration in seconds for which the quizz must be finished.")
-
+	//allowedTime := flag.Int64("allowed time", 10, "The duration in seconds for which the quizz must be finished.")
 	records, err := getFileContent(*fileName)
 	if err != nil {
 		exit("Reader problem.")
 	}
 
-	finished := make(chan bool)
-	promptUser(finished, *allowedTime)
+	done := make(chan bool)
+	expiredTime := make(chan time.Time)
 
-	counter := 0
+	go provideQuestions(records, done)
+	go watchOutForTimeExpiration()
+
 	select {
-	case finish := <-finished:
-		fmt.Println("Finished:")
-		fmt.Println(finish)
-		provideUserSummary(len(records), counter)
-		os.Exit(0)
-	default:
-		for _, value := range records {
-			question, answer  := value[0], value[1]
-			fmt.Println("Question:", question)
-			var userAnswer string
-			fmt.Scanf("%s", &userAnswer)
-
-			if userAnswer == answer {
-				counter++
-			}
-		}
-		provideUserSummary(len(records), counter)
+	case <- done:
+		fmt.Println("Great job")
+		fmt.Println("You finished with all questions.")
+	case <- expiredTime:
+		fmt.Println("Time expired")
 	}
+
 }
