@@ -53,18 +53,28 @@ func provideQuestions(questions[][] string, done chan bool) {
 func main() {
         fileName := flag.String("name of csv file", "problems.csv", "The name of the csv file - default to 'problems.csv'")
         allowedTime := flag.Int("allowed time", 10, "The duration in seconds for which the quizz must be finished.")
-
 	flag.Parse()
+
+	var readyToStart string
+	fmt.Println("Type 'yes' if you are ready to start")
+	fmt.Scanf("%s", &readyToStart)
+
+	if readyToStart != Ready {
+		fmt.Println("Come back later if you are ready")
+		os.Exit(0)
+	}
+
         records, err := getFileContent(*fileName)
 
 
         if err != nil {
                 exit("Reader problem.")
         }
+	
 
         done := make(chan bool)
 	timer := time.NewTimer(time.Duration(*allowedTime) * time.Second)
-
+	
         go provideQuestions(records, done)
 
         select {
