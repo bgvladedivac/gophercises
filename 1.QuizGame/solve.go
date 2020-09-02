@@ -23,7 +23,7 @@ func getFileContent(filename string) (records[][] string, err error) {
         return reader.ReadAll()
 }
 
-func provideUserSummary(totalQuestions, correctAnswers int) {
+func outputResult(totalQuestions, correctAnswers int) {
         fmt.Println("Number of total questions:", totalQuestions)
         fmt.Println("Number of corrected answers:", correctAnswers)
 }
@@ -52,7 +52,7 @@ func provideQuestions(questions[][] string, done chan bool) {
 
 func main() {
         fileName := flag.String("name of csv file", "problems.csv", "The name of the csv file - default to 'problems.csv'")
-        allowedTime := flag.Int64("allowed time", 10, "The duration in seconds for which the quizz must be finished.")
+        allowedTime := flag.Int("allowed time", 10, "The duration in seconds for which the quizz must be finished.")
 
 	flag.Parse()
         records, err := getFileContent(*fileName)
@@ -63,7 +63,7 @@ func main() {
         }
 
         done := make(chan bool)
-	timer := time.NewTimer(allowedTime * time.Second)
+	timer := time.NewTimer(time.Duration(*allowedTime) * time.Second)
 
         go provideQuestions(records, done)
 
@@ -75,6 +75,6 @@ func main() {
                 fmt.Println("Time expired")
         }
 
-	provideUserSummary(len(records), correctAnswers)
+	outputResult(len(records), correctAnswers)
 
 }
