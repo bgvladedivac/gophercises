@@ -1,0 +1,35 @@
+<html>
+
+<body>
+
+    <h4>
+        Chapter Title: {{.Title}}
+    </h4>
+
+    {{ range .Story }}
+    <ul>
+        <li>
+            {{ . }}
+        </li>
+    </ul>
+    {{ end }}
+
+    <br />
+    <br />
+    <br />
+
+    {{ range .Options }}
+
+    <ul>
+        <li>
+            {{ .Text }}
+            <a href={{ .Arc }}>
+                {{ .Arc}}
+            </a>
+        </li>
+    </ul>
+    {{ end }}
+
+</body>
+
+</html>
